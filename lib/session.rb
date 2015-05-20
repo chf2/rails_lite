@@ -6,11 +6,12 @@ class Session
   # deserialize the cookie into a hash
   def initialize(req)
     req.cookies.each do |cookie|
-      if cookie.name == '_rails_lite_app'
+      if cookie.name == '_rails_lite_app_session'
         @cookie = JSON.parse(cookie.value)
       end
     end
     @cookie ||= {}
+    @cookie["authenticity_token"] = SecureRandom.urlsafe_base64
   end
 
   def [](key)
@@ -24,6 +25,11 @@ class Session
   # serialize the hash into json and save in a cookie
   # add to the responses cookies
   def store_session(res)
-    res.cookies << WEBrick::Cookie.new('_rails_lite_app', @cookie.to_json)
+    cookie = WEBrick::Cookie.new(
+      '_rails_lite_app_session', 
+      @cookie.to_json
+    )
+    cookie.path = "/"
+    res.cookies << cookie
   end
 end

@@ -1,7 +1,18 @@
+require 'json'
+require 'webrick'
+
 class Flash
-  def initialize(contents = {})
-    @contents = contents
-    @keep = []
+  attr_reader :contents
+
+  def initialize(req)
+    req.cookies.each do |cookie|
+      if cookie.name == '_rails_lite_app_flash'
+        @contents = JSON.parse(cookie.value)
+        
+      end
+    end
+    @contents ||= {}
+    @stored_contents = {}
   end
 
   def [](key)
@@ -9,8 +20,15 @@ class Flash
   end
 
   def []=(key, value)
-    @contents[key] = value
-    @keep << key
+    @stored_contents[key] = value
+  end
+
+  def each(&prc)
+    @contents.each(&prc)
+  end
+
+  def empty?
+    @contents.empty?
   end
 
   def method_missing(method)
@@ -21,12 +39,15 @@ class Flash
     end
   end
 
-  def now[]=(key, value)
-    @contents[key] = value
+  def now
+    @contents
   end
 
-  def keep(key)
-    @keep << key
+  def store_flash(res)
+    res.cookies << WEBrick::Cookie.new(
+      '_rails_lite_app_flash', 
+      @stored_contents.to_json
+    )
   end
 
 end

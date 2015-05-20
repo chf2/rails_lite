@@ -1,21 +1,34 @@
 require_relative './params'
 require_relative './session'
+require_relative './flash'
+require_relative './route_helper'
+require_relative './view_helper'
 require 'active_support'
 require 'active_support/core_ext'
 require 'active_support/inflector'
 require 'erb'
 
 class ControllerBase
-  attr_reader :params, :res, :req, :flash
+  include RouteHelper
+  include ViewHelper
+  attr_reader :params, :res, :req
 
   def initialize(req, res, route_params = {})
     @params = Params.new(req, route_params)
     @req, @res = req, res
-    @flash = Flash.new
   end
 
   def already_built_response?
      @already_built_response
+  end
+
+  def button_to(text, url)
+    html = <<-HTML 
+            <form action="#{url}" method="POST">
+              <button type="submit">#{text}</button>
+            </form>
+      HTML
+    html
   end
 
   def invoke_action(name)
@@ -27,6 +40,10 @@ class ControllerBase
     end
   end
 
+  def link_to(text, url)
+    "<a href='#{url}'>#{text}</a>"
+  end
+
   def redirect_to(url)
     raise if already_built_response?
     # res.set_redirect(WEBrick::HTTPStatus::Redirect, url)
@@ -34,11 +51,13 @@ class ControllerBase
     res.status = 302
     @already_built_response = true
     session.store_session(res)
+    flash.store_flash(res)
   end
 
   def render(template_name)
+    view_directory = self.class.to_s.underscore[0..-12]
     erb_template = File.read(
-      "views/#{self.class.to_s.underscore}/#{template_name}.html.erb"
+      "app/views/#{view_directory}/#{template_name}.html.erb"
     )
     controller_binding = Kernel.binding
     rendered_html = ERB.new(erb_template).result(controller_binding)
@@ -48,13 +67,20 @@ class ControllerBase
   def render_content(content, content_type)
     raise if already_built_response?
     res.body = content
+    flash.each do |k, v|
+      res.body += [k, v].to_s
+    end
     res.content_type = content_type
     @already_built_response = true
     session.store_session(res)
+    flash.store_flash(res)
   end
 
   def session
     @session ||= Session.new(req)
-    @flash = 
+  end
+
+  def flash
+    @flash ||= Flash.new(req)
   end
 end

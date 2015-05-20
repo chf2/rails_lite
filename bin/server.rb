@@ -1,12 +1,14 @@
 require 'webrick'
 require_relative '../lib/controller_base'
 require_relative '../lib/router'
-
+require_relative '../db/db_connection'
 
 # http://www.ruby-doc.org/stdlib-2.0/libdoc/webrick/rdoc/WEBrick.html
 # http://www.ruby-doc.org/stdlib-2.0/libdoc/webrick/rdoc/WEBrick/HTTPRequest.html
 # http://www.ruby-doc.org/stdlib-2.0/libdoc/webrick/rdoc/WEBrick/HTTPResponse.html
 # http://www.ruby-doc.org/stdlib-2.0/libdoc/webrick/rdoc/WEBrick/Cookie.html
+
+DBConnection.open('../db/development.db')
 
 $cats = [
   { id: 1, name: "Curie" },
@@ -21,6 +23,8 @@ $statuses = [
 
 class StatusesController < ControllerBase
   def index
+    flash[:notice] = "Regular flash from Statuses"
+    flash.now[:notice] = "Flash.now from Statuses"
     statuses = $statuses.select do |s|
       s[:cat_id] == Integer(params[:cat_id])
     end
@@ -29,15 +33,17 @@ class StatusesController < ControllerBase
   end
 end
 
-class Cats2Controller < ControllerBase
+class CatsController < ControllerBase
   def index
-    render_content($cats.to_s, "text/text")
+    flash[:notice] = "Regular flash from Cats"
+    flash.now[:notice] = "Flash.now from Cats"
+    # render_content($cats.to_s, "text/text") unless already_built_response?
   end
 end
 
 router = Router.new
 router.draw do
-  get Regexp.new("^/cats$"), Cats2Controller, :index
+  get Regexp.new("^/cats$"), CatsController, :index
   get Regexp.new("^/cats/(?<cat_id>\\d+)/statuses$"), StatusesController, :index
 end
 
