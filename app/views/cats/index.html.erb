@@ -1,7 +1,9 @@
 <h1>This is the new and improved cats Index page!</h1>
-<p>Cat 1 tktktk</p>
-<p>Cat 2 tktktk</p>
-<p><%= link_to "Test link for link_to / cats_path", cats_path %></p>
-<p><%= button_to "Test button, default POST to /cats", "/cats" %></p>
-<p><%= @cats %></p>
+<h3>All Cats</h3>
+<ul> 
+  <% @cats.each do |cat| %>
+    <li><%= link_to cat.name, cat_path(cat) %></li>
+  <% end %>
+</ul>
 
+<p><%= link_to "Create new cat", new_cat_path %></p>

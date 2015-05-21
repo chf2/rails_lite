@@ -50,12 +50,16 @@ class Router
     instance_eval(&proc)
   end
 
+  def gen_rgx(regexp)
+    Regexp.new("^/#{regexp}$")
+  end
+
   # make each of these methods that
   # when called add route
   [:get, :post, :put, :delete].each do |http_method|
     define_method(http_method) do |pattern, controller_class, action_name|
       add_route(pattern, http_method, controller_class, action_name)
-      
+      # Create Path Helper Method
       matcher = Regexp.new("^(?<class>.+)Controller$")
       class_name = matcher.match(controller_class.to_s)['class'].downcase
       RouteHelper.create_helper(action_name, class_name)
@@ -70,7 +74,6 @@ class Router
 
   # either throw 404 or call run on a matched route
   def run(req, res)
-    p req.cookies
     route = match(req)
     if route
       route.run(req, res)

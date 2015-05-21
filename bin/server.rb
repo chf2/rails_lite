@@ -1,51 +1,16 @@
 require 'webrick'
-require_relative '../lib/controller_base'
-require_relative '../lib/router'
 require_relative '../db/db_connection'
+require_relative '../config/routes.rb'
 
 # http://www.ruby-doc.org/stdlib-2.0/libdoc/webrick/rdoc/WEBrick.html
 # http://www.ruby-doc.org/stdlib-2.0/libdoc/webrick/rdoc/WEBrick/HTTPRequest.html
 # http://www.ruby-doc.org/stdlib-2.0/libdoc/webrick/rdoc/WEBrick/HTTPResponse.html
 # http://www.ruby-doc.org/stdlib-2.0/libdoc/webrick/rdoc/WEBrick/Cookie.html
 
-DBConnection.open('../db/development.db')
-
-$cats = [
-  { id: 1, name: "Curie" },
-  { id: 2, name: "Markov" }
-]
-
-$statuses = [
-  { id: 1, cat_id: 1, text: "Curie loves string!" },
-  { id: 2, cat_id: 2, text: "Markov is mighty!" },
-  { id: 3, cat_id: 1, text: "Curie is cool!" }
-]
-
-class StatusesController < ControllerBase
-  def index
-    flash[:notice] = "Regular flash from Statuses"
-    flash.now[:notice] = "Flash.now from Statuses"
-    statuses = $statuses.select do |s|
-      s[:cat_id] == Integer(params[:cat_id])
-    end
-
-    render_content(statuses.to_s, "text/text")
-  end
-end
-
-class CatsController < ControllerBase
-  def index
-    flash[:notice] = "Regular flash from Cats"
-    flash.now[:notice] = "Flash.now from Cats"
-    # render_content($cats.to_s, "text/text") unless already_built_response?
-  end
-end
+# DBConnection.open('development.db')
 
 router = Router.new
-router.draw do
-  get Regexp.new("^/cats$"), CatsController, :index
-  get Regexp.new("^/cats/(?<cat_id>\\d+)/statuses$"), StatusesController, :index
-end
+AllRoutes.new.run(router)
 
 server = WEBrick::HTTPServer.new(Port: 3000)
 server.mount_proc('/') do |req, res|

@@ -1,4 +1,4 @@
-require_relative 'db_connection'
+require_relative '../db/db_connection'
 require 'active_support/inflector'
 
 # NB: the attr_accessor we wrote in phase 0 is NOT used in the rest
@@ -17,7 +17,6 @@ class SQLObject
     @columns = data[0].map(&:to_sym) #store an instance varialbe! Caching
   end
 
-  
   def self.prefetched_objects
     @prefetched_objects ||= []
   end
@@ -28,7 +27,6 @@ class SQLObject
         attributes[column]
       end
 
-      # Don't need to define methods as symbols, string is fine
       define_method("#{column}=") do |val|
         attributes[column] = val
       end

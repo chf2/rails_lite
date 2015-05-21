@@ -1,5 +1,5 @@
 module ViewHelper
-  def insert_csrf_token
+  def insert_auth_token
     html = <<-HTML 
       <input type="hidden" 
              name="authenticity_token" 

@@ -10,11 +10,13 @@ module RouteHelper
         "/#{class_name}/new"
       end
     when :update, :destroy, :show
-      define_method("#{class_name.chop}_path") do |id|
+      define_method("#{class_name.chop}_path") do |obj_id|
+        id = obj_id.id unless obj_id.is_a?(Fixnum)
         "/#{class_name}/#{id}"
       end
     when :edit
-      define_method("edit_#{class_name.chop}_path") do |id|
+      define_method("edit_#{class_name.chop}_path") do |obj_id|
+        id = obj_id.id unless obj_id.is_a?(Fixnum)
         "/#{class_name}/#{id}/edit"
       end
     else

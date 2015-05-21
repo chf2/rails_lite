@@ -1,0 +1,12 @@
+<h1>New Cat</h1>
+
+<form action="<%= cats_path %>" method="POST">
+  <%= insert_auth_token %>
+  <label for="cat-name">Name:</label>
+  <input type="text"
+         id="cat-name"
+         name="cat[name]"
+         value="<%= @cat.name %>">
+  <br>
+  <input type="submit" value="Create Cat">
+</form>
