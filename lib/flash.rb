@@ -1,6 +1,8 @@
 require 'json'
 require 'webrick'
 
+# Could implement a hash with indifferent access class here
+
 class Flash
   attr_reader :contents
 
@@ -44,10 +46,11 @@ class Flash
   end
 
   def store_flash(res)
-    res.cookies << WEBrick::Cookie.new(
+    cookie = WEBrick::Cookie.new(
       '_rails_lite_app_flash', 
       @stored_contents.to_json
     )
+    cookie.path = "/"
+    res.cookies << cookie
   end
-
 end

@@ -13,6 +13,7 @@ class CatsController < ControllerBase
   end
 
   def create
+    fail
     @cat = Cat.new(name: params[:cat][:name])
     if @cat.save
       flash[:success] = "Cat created!"
