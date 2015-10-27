@@ -1,5 +1,4 @@
 require_relative 'db_connection'
-require_relative 'sql_object'
 require 'active_support/inflector'
 
 module Searchable
@@ -91,8 +90,4 @@ class Relation
     SQL
     klass.parse_all(results)
   end
-end
-
-class SQLObject
-  extend Searchable
 end

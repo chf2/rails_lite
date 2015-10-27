@@ -1,25 +1,29 @@
 require_relative '../db/db_connection'
+require_relative './associatable'
+require_relative './searchable'
 require 'active_support/inflector'
 
-# NB: the attr_accessor we wrote in phase 0 is NOT used in the rest
-# of this project. It was only a warm up.
-
-class SQLObject
+class ModelBase
+  extend Associatable
+  extend Searchable
   def self.columns
     return @columns if @columns
-    data = DBConnection.execute2(<<-SQL)
+    data = DBConnection.execute(<<-SQL)
       SELECT
         *
       FROM
         #{table_name}
+      LIMIT
+        0
     SQL
 
-    @columns = data[0].map(&:to_sym) #store an instance varialbe! Caching
+    @columns = data.fields.map(&:to_sym)
   end
 
-  def self.prefetched_objects
-    @prefetched_objects ||= []
-  end
+  # Experimental -- includes
+  # def self.prefetched_objects
+  #   @prefetched_objects ||= []
+  # end
 
   def self.finalize!
     columns.each do |column|
@@ -52,18 +56,8 @@ class SQLObject
   end
 
   def self.parse_all(results)
-    instances = []
-    results.each do |params|
-      instances << self.new(params)
-    end
-
-    instances
+    results.map { |result| self.new(result) }
   end
-
-  # MUCH BETTER THAN CREATE COLLECTION, SHOVEL ELEMENTS
-  # def sef.parse_all(results)
-  #   results.map { |result| self.new(result) }
-  # end
 
   def self.find(id)
     data = DBConnection.execute(<<-SQL, id)
@@ -93,35 +87,37 @@ class SQLObject
   end
 
   def attribute_values
-    attributes.values
+    self.class.columns.map { |col| attributes[col] }
   end
 
   def insert
     cols = self.class.columns
     raise "No columns to insert into" if cols.length < 2
-    col_names = "(" + cols[1..-1].join(', ') + ")"
-    question_marks = "(" + "?, " * (cols.length - 2) + "?)"
-    DBConnection.execute(<<-SQL, *attribute_values)
+    col_names = "(" + cols.drop(1).join(", ") + ")"
+    val_string = (1...cols.length).map { |num| "$#{num}" }.join(", ")
+    DBConnection.execute_params(<<-SQL, attribute_values)
       INSERT INTO
         #{self.class.table_name} #{col_names}
       VALUES
-        #{question_marks}
+        #{val_string}
+      RETURNING id
     SQL
-    self.id = DBConnection.last_insert_row_id
+
+    self.id = data[0]['id'].to_i
   end
 
   def update
-    set_str = self.class.columns.drop(1).map do |col|
-      "#{col}"
-    end.join(" = ?, ") + " = ?"
-    p set_str
-    DBConnection.execute(<<-SQL, *attribute_values.drop(1), id)
+    set_str = self.class.columns.map do |col|
+      "#{col} = ?"
+    end.join(", ")
+    
+    DBConnection.execute_params(<<-SQL, attribute_values)
       UPDATE
         #{self.class.table_name}
       SET
         #{set_str}
       WHERE
-        id = :id 
+        id = #{self.id}
     SQL
   end
 

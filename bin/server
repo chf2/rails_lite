@@ -1,5 +1,6 @@
+#! /usr/bin/env ruby
+
 require 'webrick'
-require_relative '../db/db_connection'
 require_relative '../config/routes.rb'
 
 # http://www.ruby-doc.org/stdlib-2.0/libdoc/webrick/rdoc/WEBrick.html
@@ -10,9 +11,11 @@ require_relative '../config/routes.rb'
 # DBConnection.open('development.db')
 
 router = Router.new
+# Routes are drawn in config/routes.rb
 AllRoutes.new.run(router)
 
-server = WEBrick::HTTPServer.new(Port: 3000)
+PORT = ARGV[0] || 3000
+server = WEBrick::HTTPServer.new(Port: PORT)
 server.mount_proc('/') do |req, res|
   route = router.run(req, res)
 end

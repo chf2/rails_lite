@@ -1,5 +1,5 @@
 require_relative '../../lib/sql_object.rb'
 
-class Cat < SQLObject
+class Cat < ModelBase
   self.finalize!
 end
