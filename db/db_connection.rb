@@ -3,11 +3,11 @@ require 'pg'
 class DBConnection < PG::Connection
   def initialize
     super(
-      host: "",
-      dbname: "",
-      port: "",
-      password: "",
-      user: "",
+      host: ENV["db_host"],
+      dbname: ENV["db_dbname"],
+      port: ENV["db_port"],
+      password: ENV["db_password"],
+      user: ENV["db_user"],
     )
   end
 
