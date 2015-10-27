@@ -21,9 +21,9 @@ class ModelBase
   end
 
   # Experimental -- includes
-  # def self.prefetched_objects
-  #   @prefetched_objects ||= []
-  # end
+  def self.prefetched_objects
+    @prefetched_objects ||= []
+  end
 
   def self.finalize!
     columns.each do |column|
